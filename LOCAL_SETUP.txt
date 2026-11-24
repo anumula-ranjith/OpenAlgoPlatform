@@ -1,0 +1,165 @@
+OPENALGO LOCAL WINDOWS SETUP - ANGEL ONE
+======================================
+
+Project: D:\Projects\OpenAlgoPlatform
+Project repository: https://github.com/anumula-ranjith/OpenAlgoPlatform
+Official source: https://github.com/marketcalls/openalgo
+Installed checkout: c38c5810ff3ad4dad295955ede3b67f999ba8c04
+Application version: 2.0.3.5
+
+This is the official OpenAlgo application with local launchers and installation
+checks. The upstream application source and bundled frontend are unchanged.
+
+STEP 1 - DEVELOPMENT TOOLS
+Python 3.12.10, Git, VS Code, Python and Pylance extensions were already present.
+UV 0.13.9 was installed for your Windows user:
+    python -m pip install --user uv
+Use "python -m uv" if the standalone "uv" command is not on PATH.
+Jupyter is optional and was not installed. Node.js is unnecessary to run this
+checkout because the official repository includes its built React frontend.
+The existing Node.js 24.16.0 does not meet this checkout's frontend development
+engine requirement; update to a version accepted in frontend/package.json
+before rebuilding or developing the frontend.
+
+STEP 2 - SOURCE AND PYTHON ENVIRONMENT
+The initially empty project folder received the official repository:
+    git clone --depth 1 https://github.com/marketcalls/openalgo.git .
+For a new installation of this project on another machine, use:
+    git clone https://github.com/anumula-ranjith/OpenAlgoPlatform.git
+    cd OpenAlgoPlatform
+The exact dependency versions come from the upstream lockfile:
+    python -m uv sync --locked
+Dependencies live inside this project's .venv folder.
+
+STEP 3 - PRIVATE LOCAL CONFIGURATION
+OpenAlgo's own first-run setup generated .env from .sample.env, with unique
+APP_KEY, API_KEY_PEPPER and FERNET_SALT values. No broker credentials were added.
+Web server:       http://127.0.0.1:5000
+WebSocket:        ws://127.0.0.1:8766
+ZeroMQ:           127.0.0.1:5555
+Debug:            disabled
+Initial mode:     Analyze (sandbox)
+Port 8766 was chosen because another application already occupied 8765.
+The original process on 8765 was left running.
+Back up .env together with db/ while OpenAlgo is stopped. Preserve these keys
+after creating your account; replacing the pepper or salt breaks stored data.
+
+STEP 4 - START, STOP AND CHECK
+Double-click Start-OpenAlgo.cmd to start the server and open your browser.
+The launcher runs the server in the background and avoids a duplicate instance.
+Its working directory is always this project folder.
+After stopping any strategies, use Stop-OpenAlgo.cmd to stop only the process
+started by this project's launcher. This stops the local process; it does not
+cancel exchange orders or close broker positions.
+
+PowerShell equivalents, from this folder:
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local-openalgo.ps1 -Action Start
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local-openalgo.ps1 -Action Status
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local-openalgo.ps1 -Action Stop
+
+For a foreground terminal with live logs, first stop the background instance:
+    python -m uv run --locked app.py
+Stop a foreground instance with Ctrl+C in that terminal.
+
+Read-only installation checks:
+    .\.venv\Scripts\python.exe scripts\check-local-openalgo.py
+Dependency compatibility:
+    python -m uv pip check --python .venv\Scripts\python.exe
+Logs:
+    log\local-openalgo.stdout.log
+    log\local-openalgo.stderr.log
+Launcher process record:
+    tmp\local-openalgo-process.json
+
+STEP 5 - CREATE YOUR ADMINISTRATOR ACCOUNT (YOUR PRIVATE INPUT)
+Open http://127.0.0.1:5000/setup
+Choose a username, your own email, a password and its confirmation.
+Use at least eight characters with uppercase, lowercase, a number and a special
+character from !@#$%^&*. Create the account, then sign in.
+No administrator credentials were invented or saved for you.
+
+INSTALLATION VERIFICATION
+All six local checks passed: private configuration, installed dependencies,
+frontend setup page and its 60 referenced assets, application/database health,
+database integrity/Analyze mode, and a WebSocket connection handshake.
+The launcher was checked for duplicate-start protection, shutdown and restart.
+All three local ports were released on shutdown, and the unrelated process on
+8765 remained running. The server was started again after these checks.
+The latest read-only check report is at:
+    tmp\local-openalgo-verification.json
+These checks do not verify broker authentication, live data, orders or strategy
+execution. Create your own account and connect your broker on each new install.
+
+STEP 6 - PREPARE ANGEL ONE SMARTAPI (YOUR BROKER ACCOUNT)
+Open https://smartapi.angelone.in and select Login in your own browser.
+The verified login entry is:
+    https://smartapi.angelone.in/publisher-login/v2/login/
+The older smartapi.angelbroking.com/signin address returned a 404 when checked.
+Sign in using your registered mobile number or Client ID and the broker's
+verification flow. If you already have a key, use its existing app instead of
+creating a duplicate. Otherwise, select Add App and follow the current fields.
+Save the SmartAPI key privately.
+Enable TOTP using the broker's enrollment flow and your authenticator app.
+Register your actual static public IP against this app. The current Angel One
+notice, effective 01-Apr-2026, requires API order execution to originate from
+the registered static IP. A local address such as 127.0.0.1 or 192.168.x.x is
+not the public IP to register. This installation does not provision a static IP.
+If you already have a SmartAPI key and a static public IP, check their mapping
+in the broker dashboard before using the existing app.
+Current broker requirements:
+    https://smartapi.angelone.in/exchange-regulations
+Broker-specific reference:
+    https://docs.openalgo.in/connect-brokers/brokers/angelone
+
+STEP 7 - SAVE THE SMARTAPI KEY PRIVATELY
+While signed in, open:
+    http://127.0.0.1:5000/broker/config?broker=angel
+Choose Angel One, enter SmartAPI Key, and Save.
+This plugin requires no API secret. Keys saved here are encrypted in the local
+database. The current Angel One plugin uses a local TOTP form, not an OAuth
+redirect; use the page hints and broker portal requirements for registration.
+Do not paste your API key, PIN, password or TOTP into chat or source files.
+
+STEP 8 - CONNECT ANGEL ONE
+Open http://127.0.0.1:5000/broker and choose Login with Angel One.
+Enter your Client ID, trading PIN and current six-digit TOTP privately.
+Wait for the Dashboard and master-contract download. Confirm funds, symbol
+search, order book and positions load correctly.
+Broker connection and live market data cannot be verified without this login.
+
+STEP 9 - GENERATE YOUR OPENALGO API KEY
+Open Profile > API Key at http://127.0.0.1:5000/apikey and generate a key.
+This key is different from your Angel One SmartAPI key. Use the OpenAlgo key
+with your strategies or integrations and keep it private.
+
+STEP 10 - TEST IN ANALYZE MODE
+Confirm the header says Analyze before starting any strategy.
+The initial database was configured for Analyze, but always verify the badge.
+Market data still requires a valid broker connection and broker entitlements.
+Choose your own test strategy and parameters. Confirm any sandbox order,
+trade, position and P&L in the analyzer before considering live execution.
+No orders, strategies or automated trading were started during installation.
+First-order instructions:
+    docs\userguide\10-placing-first-order\README.md
+
+STEP 11 - OPTIONAL INTEGRATIONS
+TradingView webhooks need a reachable HTTPS endpoint; the loopback address
+cannot receive webhooks from TradingView. Configure a documented tunnel or
+server only if you choose this workflow. No tunnel or public hosting was added.
+Local Python strategies can connect to the local OpenAlgo API directly.
+Webhook exposure and live trading are separate from this local installation.
+
+STEP 12 - DAILY USE AND UPDATES
+Start OpenAlgo, sign in, reconnect Angel One when its session expires, and
+confirm the execution mode and existing positions before enabling strategies.
+The default OpenAlgo daily application-session expiry is 03:00 IST.
+When updating, stop strategies and the application, back up .env and db/
+together, review upstream changes, then update source and sync dependencies.
+Do not overwrite an existing .env with .sample.env.
+
+REFERENCES
+    https://openalgo.in/getting-started
+    https://docs.openalgo.in/installation-guidelines/getting-started
+    https://docs.openalgo.in/connect-brokers/broker-configuration
+    docs\userguide\04-installation\README.md
+    docs\userguide\05-first-time-setup\README.md

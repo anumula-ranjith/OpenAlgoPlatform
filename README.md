@@ -1,5 +1,31 @@
 # OpenAlgo - Open Source Algorithmic Trading Platform
 
+## OpenAlgoPlatform Windows setup
+
+This repository contains the upstream [OpenAlgo](https://github.com/marketcalls/openalgo)
+platform plus Windows launchers, an Angel One setup guide, and read-only local
+installation checks. The upstream AGPL-3.0 license and attribution are preserved.
+
+```powershell
+git clone https://github.com/anumula-ranjith/OpenAlgoPlatform.git
+cd OpenAlgoPlatform
+python -m pip install --user uv
+python -m uv run --locked app.py
+```
+
+Open `http://127.0.0.1:5000`, create your administrator account, and save your
+Angel One SmartAPI key in **Broker Configuration**. Select **Analyze** before
+testing. Your own `.env`, broker keys, databases, logs, and virtual environment
+are local data and are excluded from Git.
+
+See [LOCAL_SETUP.txt](LOCAL_SETUP.txt) for the detailed Windows and Angel One
+steps. After the first startup, use `Start-OpenAlgo.cmd` and `Stop-OpenAlgo.cmd`
+to manage a background instance, or stop the foreground instance with Ctrl+C
+before switching to the launcher. Run
+`.\.venv\Scripts\python.exe scripts\check-local-openalgo.py` for read-only checks.
+The existing local installation uses WebSocket port **8766**; fresh checkouts
+use the upstream default **8765**, configurable in `.env`.
+
 <div align="center">
 
 [![PyPI Downloads](https://static.pepy.tech/badge/openalgo)](https://pepy.tech/projects/openalgo)
