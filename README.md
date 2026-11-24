@@ -45,6 +45,23 @@ create/cancel test from fresh-market entry/exit testing, which remains pending.
 [FIRST_STRATEGY.txt](FIRST_STRATEGY.txt) preserves the earlier signals-only lesson.
 Credentials, hosted strategy settings, screenshots, and generated reports stay local.
 
+### Next-session plan and P&L verification
+
+The [next-session plan](NEXT_PAPER_SESSION.txt) documents the one-time
+25-Nov-2026 paper rehearsal. The strategy's `--session-date` guard refuses
+execution on a different IST date. The [read-only verifier](scripts/verify_nifty_paper_session.py)
+reconciles sandbox orders and fills, checks that the contract is flat, and
+calculates gross P&L, recorded charges, and net P&L without making trading calls.
+
+Run all 57 focused strategy and accounting checks with:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest --noconftest test/test_first_nifty_strategy.py test/test_nifty_25350ce_analyzer.py test/test_verify_nifty_paper_session.py -q
+```
+
+The plan describes a local Codex continuation. Cloning this repository does not
+create that automation; its configuration and generated session results remain local.
+
 <div align="center">
 
 [![PyPI Downloads](https://static.pepy.tech/badge/openalgo)](https://pepy.tech/projects/openalgo)

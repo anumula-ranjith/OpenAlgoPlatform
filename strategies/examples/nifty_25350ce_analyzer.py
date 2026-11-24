@@ -482,12 +482,21 @@ def main(argv=None):
     )
     parser.add_argument("--local-key", action="store_true")
     parser.add_argument("--minutes", type=int, default=15)
+    parser.add_argument(
+        "--session-date",
+        type=date.fromisoformat,
+        help="Refuse execution on any date other than this IST trading date",
+    )
     parser.add_argument("--start-date", default=(today - timedelta(days=10)).isoformat())
     parser.add_argument("--end-date", default=today.isoformat())
     parser.add_argument("--report", type=Path)
     args = parser.parse_args(argv)
-    if not 1 <= args.minutes <= 60:
-        parser.error("--minutes must be between 1 and 60")
+    if not 1 <= args.minutes <= 360:
+        parser.error("--minutes must be between 1 and 360")
+    if args.session_date is not None and args.session_date != today:
+        raise StrategyError(
+            "This run is restricted to its specified IST session date. No orders submitted."
+        )
     for value in (args.start_date, args.end_date):
         date.fromisoformat(value)
     if args.start_date > args.end_date:
