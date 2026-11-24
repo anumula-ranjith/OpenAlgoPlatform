@@ -26,42 +26,6 @@ before switching to the launcher. Run
 The existing local installation uses WebSocket port **8766**; fresh checkouts
 use the upstream default **8765**, configurable in `.env`.
 
-## First NIFTY option strategy (Analyzer only)
-
-Follow the [step-by-step Analyzer walkthrough](NIFTY_OPTIONS_ANALYZER_GUIDE.txt)
-for `NIFTY01DEC2625350CE`. The [strategy](strategies/examples/nifty_25350ce_analyzer.py)
-uses the shared [NIFTY EMA signal helpers](strategies/examples/first_nifty_strategy.py)
-and writes orders only to the local sandbox. The contract and expiry are fixed;
-the example refuses to run after expiry and does not roll automatically.
-
-Run the 42 offline strategy checks with:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest --noconftest test/test_first_nifty_strategy.py test/test_nifty_25350ce_analyzer.py -q
-```
-
-The walkthrough distinguishes historical data checks and the completed sandbox
-create/cancel test from fresh-market entry/exit testing, which remains pending.
-[FIRST_STRATEGY.txt](FIRST_STRATEGY.txt) preserves the earlier signals-only lesson.
-Credentials, hosted strategy settings, screenshots, and generated reports stay local.
-
-### Next-session plan and P&L verification
-
-The [next-session plan](NEXT_PAPER_SESSION.txt) documents the one-time
-25-Nov-2026 paper rehearsal. The strategy's `--session-date` guard refuses
-execution on a different IST date. The [read-only verifier](scripts/verify_nifty_paper_session.py)
-reconciles sandbox orders and fills, checks that the contract is flat, and
-calculates gross P&L, recorded charges, and net P&L without making trading calls.
-
-Run all 57 focused strategy and accounting checks with:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest --noconftest test/test_first_nifty_strategy.py test/test_nifty_25350ce_analyzer.py test/test_verify_nifty_paper_session.py -q
-```
-
-The plan describes a local Codex continuation. Cloning this repository does not
-create that automation; its configuration and generated session results remain local.
-
 <div align="center">
 
 [![PyPI Downloads](https://static.pepy.tech/badge/openalgo)](https://pepy.tech/projects/openalgo)
