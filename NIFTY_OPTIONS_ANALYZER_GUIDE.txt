@@ -1,0 +1,154 @@
+FIRST NIFTY OPTION STRATEGY - ANALYZER WALKTHROUGH
+================================================
+
+Selected contract: NIFTY01DEC2625350CE
+Exchange: NFO
+Expiry: 01-Dec-2026
+Strike: 25350
+Type: CE (Call)
+Quantity: one verified lot, 65 units
+Tick size: INR 0.05
+Product: MIS
+
+SAVED APPLICATION STRATEGY
+Name: NIFTY 01Dec26 25350 CE - Analyzer EMA 5-20
+ID: nifty_25350ce_analyzer_20261124120738
+Page: http://127.0.0.1:5000/python
+State at handover: Manual Stop; not running; automatic starts cancelled.
+Saved host window: 09:30-15:10 IST, weekdays, NFO calendar.
+The scheduler remains configured, as OpenAlgo requires. Its manually_stopped
+flag is true, which prevents automatic starts until you click Start.
+
+STEP 1 - UNDERSTAND THE SIGNAL AND EXITS
+Signals use NIFTY on NSE_INDEX, not the option's premium chart.
+The script compares EMA 5 with EMA 20 on completed five-minute index candles.
+It keeps EMA history across sessions and requires 21 completed candles.
+On a fresh bullish crossover, it buys 65 units of the selected call in sandbox.
+It exits that long position on the first of:
+  - A fresh bearish crossover.
+  - Option premium at/below 90% of the confirmed average entry price.
+  - Option premium at/above 120% of that entry price.
+  - 15:05 IST, or the normal end of the bounded rehearsal.
+Entries are allowed from 09:30 until before 14:30 IST, one filled entry per day.
+The script never shorts the call or adds to an existing position. The latest
+already-completed candle is seeded at startup; it does not immediately trade an
+old crossover. Signals older than six minutes, future signals and duplicates
+cannot open a new position.
+
+STEP 2 - UNDERSTAND THE EXECUTION BOUNDARY
+Source: strategies/examples/nifty_25350ce_analyzer.py
+Shared signal helpers: strategies/examples/first_nifty_strategy.py
+Reads use the OpenAlgo SDK. Writes call only this checkout's sandbox service;
+the strategy never invokes a live broker order endpoint. Every new submission
+also verifies Analyze mode. It refuses expired contracts, changed lot sizes,
+existing exposure/pending orders on this contract, and a second entry that day.
+A file lock prevents two copies of this example from running simultaneously.
+This version runs locally inside this OpenAlgo installation; it is not a
+portable strategy client for a different remote OpenAlgo server.
+
+Orders use marketable LIMIT prices approximately 0.1% from the observed option
+premium, rounded to the verified tick. A submitted order is polled for up to ten
+seconds. An unfilled order is cancelled; an uncertain outcome is not resent.
+Successful placement is not treated as a fill: status and filled quantity must
+confirm the entire 65-unit lot before the policy changes position state.
+
+Stop and target are conditions monitored by the Python process, rather than
+resting exchange or server-side protective orders. Prices can gap; the realized
+simulated exit can differ from the threshold. Keep the application and process
+running during a rehearsal. Do not use this learning example for live orders.
+
+STEP 3 - REVIEW THE COMPLETED READINESS CHECK
+The public Analyzer API confirmed Analyze mode. The master contract confirmed
+the exact option, expiry, 65-unit lot and INR 0.05 tick. No existing selected-
+contract position or pending order was present before the test.
+Report: tmp/nifty_25350ce_readiness.json
+
+Repeat from PowerShell in D:\Projects\OpenAlgoPlatform:
+    .\.venv\Scripts\python.exe strategies/examples/nifty_25350ce_analyzer.py --mode check --local-key
+The local-key flag reads the already-encrypted OpenAlgo application key into
+memory. It does not print the key or write a plaintext copy. Hosted execution
+receives OPENALGO_API_KEY from the platform. Never add credentials to source.
+
+STEP 4 - REVIEW THE HISTORICAL DATA CHECK
+438 NIFTY index candles and 462 option candles were loaded for 16-23 Nov 2026.
+Ten historical crossover signals were paired with the next available option
+bar open at/after signal availability, on the same day. Those prices are
+execution references only; the report does not claim fills or profitability.
+Report: tmp/nifty_25350ce_historical_check.json
+
+Repeat:
+    .\.venv\Scripts\python.exe strategies/examples/nifty_25350ce_analyzer.py --mode replay --local-key --start-date 2026-11-16 --end-date 2026-11-23 --report tmp/nifty_25350ce_historical_check.json
+No brokerage, slippage, volatility model, performance return or P&L backtest is
+implied by this data-alignment check. Analyzer rehearsals are also an execution
+simulation, not evidence that a strategy will be profitable.
+
+STEP 5 - REVIEW THE ACTUAL ANALYZER ORDER TEST
+A BUY LIMIT order for 65 units at INR 0.05 was created in the actual sandbox.
+This was deliberately far below the last available option quote of INR 263.55.
+Its status was verified as open/unfilled, then it was cancelled.
+Final verification: cancelled, filled quantity 0, selected-contract position 0,
+no selected-contract pending orders, and available balance/used margin restored.
+Latest clean test order: 26112443533483
+An earlier diagnostic order, 26112443473102, was also cancelled unfilled.
+These cancelled diagnostic records are retained for review; no account reset
+or deletion of previous sandbox data was performed.
+Report: tmp/nifty_25350ce_analyzer_order_test.json
+In OpenAlgo, open Orderbook while the header says Analyze and inspect the
+selected option's cancelled diagnostic orders. Positions should be flat.
+
+The diagnostic test is separate from an EMA-triggered entry/exit. It validates
+actual sandbox order creation, cancellation and margin release without claiming
+fresh-market execution. No live orders were submitted.
+
+STEP 6 - REVIEW TODAY'S CLOSED-SESSION CHECK
+24-Nov-2026 is an NSE F&O holiday. A bounded --mode paper run correctly exited
+with exchange_closed, zero orders and zero position. No old-price fill was
+presented as a real-time market fill.
+Report: tmp/nifty_25350ce_paper_session_check.json
+Official holiday notice:
+    https://nsearchives.nseindia.com/content/circulars/FAOP71777.pdf
+The next scheduled regular session is 25-Nov-2026. Fresh-price EMA entry/exit
+execution remains to be verified during an open session.
+
+STEP 7 - RUN THE FIRST BOUNDED REHEARSAL DURING AN OPEN SESSION
+1. Start OpenAlgo, log in to Angel One for that trading day, and wait for Ready.
+2. Confirm the header says Analyze; leave it there for the whole rehearsal.
+3. Check there are no other orders or MIS positions in this exact contract.
+4. Leave the saved hosted strategy in Manual Stop for this first terminal run.
+5. After 09:30 and before 14:30 IST, run:
+    .\.venv\Scripts\python.exe strategies/examples/nifty_25350ce_analyzer.py --mode paper --local-key --minutes 15 --report tmp/nifty_25350ce_paper_run.json
+6. Read the decision logs: WAIT is normal until a new eligible crossover occurs.
+7. If a BUY fills, verify 65 units in the Analyzer order book and positions.
+8. On exit or the normal time limit, verify the SELL fill and net position zero.
+The normal time limit attempts to close only the position this run confirmed.
+A lack of a crossover is a valid no-trade rehearsal; do not force a signal.
+
+STEP 8 - USE THE SAVED PYTHON STRATEGY CARD IF DESIRED
+The uploaded file was verified byte-for-byte against the tested source.
+Its default when hosted is a 15-minute paper run. During an eligible session,
+Start runs it or schedules it as described by OpenAlgo's returned message.
+Start also clears the manual-stop flag and re-arms future host scheduling.
+After the lesson and after confirming flat positions, click Stop/Cancel to
+cancel future automatic starts. The terminal command in Step 7 avoids arming
+the hosted schedule and is the clearest first bounded test.
+
+Stopping or killing a Python process from the host does not itself square off
+orders or positions and may bypass Python's cleanup. Check the selected
+contract's sandbox position and pending orders after any forced stop or error.
+Do not press Close All Positions for this exercise; it could affect other
+sandbox strategies. Review and close only the selected contract if required.
+After 01-Dec-2026, this strategy refuses to run; it does not roll automatically.
+
+STEP 9 - REVIEW THE AUTOMATED CHECKS
+    .\.venv\Scripts\python.exe -m pytest --noconftest test/test_first_nifty_strategy.py test/test_nifty_25350ce_analyzer.py -q
+42 focused tests passed, and Ruff passed for both strategy files and test files.
+Coverage includes crossover directions, completed candles, no future-data
+leakage, no duplicate actions, entry window, stop/target/time exits, no shorts,
+one entry per day, contract expiry/lot checks, Live-mode refusal, limit ticks,
+fill verification, pending-order cancellation, and the holiday no-order guard.
+Tests do not connect to a broker or write production application databases.
+
+CURRENT STATUS
+Created and saved; local historical/sandbox checks passed; hosted schedule
+manually stopped; no pending selected-contract orders or positions remain.
+Fresh-price strategy fills and performance are not yet verified.

@@ -26,6 +26,25 @@ before switching to the launcher. Run
 The existing local installation uses WebSocket port **8766**; fresh checkouts
 use the upstream default **8765**, configurable in `.env`.
 
+## First NIFTY option strategy (Analyzer only)
+
+Follow the [step-by-step Analyzer walkthrough](NIFTY_OPTIONS_ANALYZER_GUIDE.txt)
+for `NIFTY01DEC2625350CE`. The [strategy](strategies/examples/nifty_25350ce_analyzer.py)
+uses the shared [NIFTY EMA signal helpers](strategies/examples/first_nifty_strategy.py)
+and writes orders only to the local sandbox. The contract and expiry are fixed;
+the example refuses to run after expiry and does not roll automatically.
+
+Run the 42 offline strategy checks with:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest --noconftest test/test_first_nifty_strategy.py test/test_nifty_25350ce_analyzer.py -q
+```
+
+The walkthrough distinguishes historical data checks and the completed sandbox
+create/cancel test from fresh-market entry/exit testing, which remains pending.
+[FIRST_STRATEGY.txt](FIRST_STRATEGY.txt) preserves the earlier signals-only lesson.
+Credentials, hosted strategy settings, screenshots, and generated reports stay local.
+
 <div align="center">
 
 [![PyPI Downloads](https://static.pepy.tech/badge/openalgo)](https://pepy.tech/projects/openalgo)
