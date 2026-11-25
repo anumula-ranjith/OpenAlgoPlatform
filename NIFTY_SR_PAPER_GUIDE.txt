@@ -1,0 +1,162 @@
+NIFTY SUPPORT/RESISTANCE BREAKOUT - OFFLINE PAPER RESEARCH
+Rules fixed before the first run on 25 November 2026.
+
+Contract: NIFTY01DEC2625350CE, NFO, one lot of 65 units, long calls only.
+This is a distinct rolling-range strategy. It uses no opening-range or EMA
+entry signal, no prior-day reconstructed prices and no option shorts or puts.
+
+RULES FIXED BEFORE EVALUATING RETURNS
+
+1. Support = lowest NIFTY index low of the PRIOR 20 completed five-minute
+   candles within the current regular session. Resistance = their highest high.
+   Exclude the signal candle from those 20 bars. No cross-session window.
+2. Buy when a new completed five-minute NIFTY candle CLOSES strictly above
+   that resistance. A touch or intrabar high above resistance is insufficient.
+3. Execute at the option candle OPEN after that signal candle completes.
+   Entries are allowed from 11:00 through before 14:00 IST. At most one entry
+   per day. Freeze the entry's support and resistance levels for that trade.
+4. Exit when a completed NIFTY candle closes strictly below that frozen support,
+   the option premium touches a 15% stop or 30% target, or at 15:05 IST.
+   Premium thresholds use the modeled entry fill including costs of slippage.
+5. A downside breakout while flat causes no call entry. This fixed-contract
+   version does not model buying puts. It does not automatically roll contracts.
+
+DATA AND EXECUTION BOUNDARIES
+
+Use the already-downloaded actual NIFTY and call OHLCV, with manifest/hash checks.
+The intended previous-day-high/low variant was not tested because saved intraday
+index data lacks the 15:15 and 15:20 candles, and a read-only request to the
+current broker did not return daily index history. No missing highs/lows are
+invented. The rolling levels above depend only on complete earlier intraday bars.
+
+Require full regular index coverage through 15:00 and full positive-volume option
+coverage through 15:05 BEFORE evaluating a day's signals or outcomes. Missing
+sessions remain unscored. No forward fill or replacement entry is permitted.
+
+Default adverse slippage is 0.10% on each side, with adverse 0.05 tick rounding.
+Use the existing Analyzer's pure fee engine with 20 INR brokerage per executed
+order plus statutory charges, schedule dated 23-Nov-2026, rounded per fill.
+At candle open, exits have priority: time, premium stop, premium target, support
+failure. Gaps fill at the open. Intrabar threshold touches use the level before
+slippage. Stop wins if the same candle touches both stop and target.
+
+The source files contain offline signal/policy and simulation functions only.
+They do not submit orders, change accounts, register strategies or schedule runs.
+Raw market history and generated reports remain local in ignored tmp/.
+
+FIRST FIXED-RULE BACKTEST
+
+Requested evaluation: 3-23 November 2026. Cached source: Angel One SmartAPI
+history through OpenAlgo, downloaded 24-Nov-2026 16:37 IST. The original download
+manifest and input SHA256 hashes are verified and embedded in each report.
+No new option quotes, synthetic prices, or data from today's session are used.
+
+Seven regular sessions meet complete five-minute coverage: 11, 16, 17, 18, 19,
+20 and 23 November. Four produced entries. 11, 18 and 23 November had no signal.
+Excluded option sessions: 3, 4, 5, 6, 9, 12 and 13 November. The nonstandard
+8-November index session is also excluded. These days are UNSCORED, not zero
+returns. Session availability comes from the index input, without an independent
+exchange-calendar completeness audit. The full window is not fully backtested.
+
+Completed modeled trades: 4; net winners: 2; net losers: 2.
+Win rate AFTER charges: 50.00% of the four completed trades.
+Gross P&L, including modeled slippage: +6,490.25 INR.
+Charges:                                  405.36 INR.
+NET P&L:                               +6,084.89 INR.
+Maximum CLOSED-TRADE drawdown:           6,566.29 INR.
+No starting capital, capital return or intratrade drawdown is asserted.
+
+Date       Entry  Buy     Exit window   Sell    Reason   Charges     Net
+16-Nov-26  12:15  293.15  13:50-13:55   248.90  Stop       87.02  -2,963.27
+17-Nov-26  11:10  357.40  13:10-13:15   303.45  Stop       96.27  -3,603.02
+19-Nov-26  11:35  263.05  14:20-14:25   341.60  Target     97.73  +5,008.02
+20-Nov-26  11:55  400.20  12:40-12:45   519.70  Target    124.34  +7,643.16
+
+Each trade is 65 units; all times are IST. Exits above are intrabar windows,
+NOT exact execution times. The CSV records signal completion, entry timestamp,
+frozen index levels, exit window, gross/net P&L and every fee component.
+
+Frozen index levels at each entry (support / resistance):
+16 Nov: 25,190.25 / 25,276.15
+17 Nov: 25,292.85 / 25,416.95
+19 Nov: 25,242.15 / 25,327.60
+20 Nov: 25,476.80 / 25,573.65
+
+The largest winner contributes more than the total net profit. Removing that
+trade leaves -1,558.27 INR. These four trades do not demonstrate a dependable
+edge. This historical sample has also been used for earlier strategy research;
+the present result is NOT independent validation or an out-of-sample result.
+No rules were tuned after seeing these results. Costs and OHLC assumptions
+can materially change simulated fills. No baseline trade touched both premium
+stop and target in the same candle.
+
+CHARGES IN THE FOUR TRADES
+
+The current enabled Analyzer plan was read without changing it: flat 20 INR
+per executed F&O order, percentage brokerage 0. This is the test's cost model;
+it does not assert the logged-in broker's actual contract-note charges.
+  Brokerage (8 orders x 20): 160.00
+  STT:                      138.00
+  Exchange including IPFT:    63.00
+  SEBI fees:                  0.18
+  Stamp duty:                 4.00
+  GST:                       40.18
+  TOTAL:                    405.36
+All values INR. Broker-specific plans, aggregation and rounding may differ.
+No exercise settlement, financing or overnight holding is modeled.
+Published references checked:
+https://www.angelone.in/support/charges-and-cashbacks/brokerage-charges
+https://nsearchives.nseindia.com/content/circulars/FATAX73524.pdf
+https://www.nseindia.com/static/invest/first-time-investor-sebi-turnover-fees-stt-other-levies
+
+RESOLUTION AND SLIPPAGE CHECKS
+
+Only 19 November has a complete one-minute option session. It reproduces the
+11:35 entry and +5,008.02 INR net, with target touched in the 14:22-14:23 candle.
+It cannot reproduce the other three trades using the strict coverage rule.
+The one-trade check's 100% win rate does NOT validate a 100% strategy win rate.
+
+Holding all strategy rules fixed, adverse slippage per side gives:
+ 0 bps (0.00%): net +6,172.67 INR; two net winners out of four.
+10 bps (0.10%): net +6,084.89 INR; two net winners out of four (baseline).
+20 bps (0.20%): net +6,000.35 INR; two net winners out of four.
+These cost scenarios are not an optimization or new sample.
+
+REPRODUCE IN POWERSHELL
+
+From D:\Projects\OpenAlgoPlatform, using the existing local market-data files:
+
+1. Run baseline and generate its chart:
+   .\.venv\Scripts\python.exe scripts/backtest_nifty_sr.py --chart
+
+2. Review all assumptions and coverage:
+   tmp/nifty_sr/five_minute/report.json
+   tmp/nifty_sr/five_minute/trades.csv
+   tmp/nifty_sr/five_minute/coverage.csv
+   tmp/nifty_sr/five_minute/backtest.png
+
+3. Run the one-minute coverage cross-check:
+   .\.venv\Scripts\python.exe scripts/backtest_nifty_sr.py --option-minutes 1 --output-dir tmp/nifty_sr/one_minute
+
+4. Run a higher-slippage scenario without replacing the baseline:
+   .\.venv\Scripts\python.exe scripts/backtest_nifty_sr.py --slippage-bps 20 --output-dir tmp/nifty_sr/slippage_20bps
+
+5. Run the 44 strategy and offline utility checks:
+   .\.venv\Scripts\python.exe -m pytest --noconftest test/test_nifty_sr_paper.py test/test_nifty_paper_backtest_utils.py -q
+
+Default inputs are tmp/nifty_backtest/fresh_download/underlying_5m.csv,
+option_5m.csv and option_1m.csv plus download_manifest.json. --data-dir selects
+another folder with the same verified file/instrument/interval layout. The
+script uses only offline data validation, fill arithmetic, fee functions
+and input checks from nifty_paper_backtest_utils.py. No ORB code is required.
+The strategy source's SHA256 is saved in the report for reproducibility.
+A fresh checkout needs those broker-supplied historical files locally; private
+keys and market data are not bundled in Git. Optional --chart needs matplotlib.
+
+The initial research run passed 59 strategy/shared-research checks. The published
+package passes 44 strategy/utility checks without requiring the ORB strategy.
+Extracting the utilities left all four trades, coverage and reported P&L unchanged.
+Sandbox order count stayed 2 and filled-trade count 0 during the research run;
+selected option remained flat, with no pending orders. Strategy Host remained
+empty. No strategy, order, account configuration or automation was installed
+or changed. No existing broker/frontend edits were changed by this research.
